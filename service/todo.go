@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -20,9 +19,9 @@ type TodoService struct {
 }
 
 // NewTodoService ...
-func NewTodoService(db *sqlx.DB, log l.Logger) *TodoService {
+func NewTodoService(storage storage.IStorage, log l.Logger) *TodoService {
 	return &TodoService{
-		storage: storage.NewStoragePg(db),
+		storage: storage,
 		logger:  log,
 	}
 }
@@ -80,20 +79,21 @@ func (s *TodoService) Delete(ctx context.Context, req *pb.ByIdReq) (*pb.EmptyRes
 	return &pb.EmptyResp{}, nil
 }
 
-func (s *TodoService) ListOverdue(ctx context.Context, req *pb.Time) (*pb.Deadline, error) {
+func (s *TodoService) ListOverdue(ctx context.Context, req *pb.Time) (*pb.ListResp, error) {
 	layout := "2006-01-02"
 	t, err := time.Parse(layout, req.Time)
 	if err != nil {
 		s.logger.Error("Faild to convert time!")
 		return nil, err
 	}
-	todo, err := s.storage.Todo().ListOverdue(t)
+	todos, count, err := s.storage.Todo().ListOverdue(t, req.Page, req.Limit)
 	if err != nil {
-		s.logger.Error("failed to get todo", l.Error(err))
-		return nil, status.Error(codes.Internal, "failed to get todo")
+		s.logger.Error("failed to list todos", l.Error(err))
+		return nil, status.Error(codes.Internal, "failed to list todos")
 	}
 
-	return &pb.Deadline{
-		Todos: todo,
+	return &pb.ListResp{
+		Todos: todos,
+		Count: count,
 	}, nil
 }

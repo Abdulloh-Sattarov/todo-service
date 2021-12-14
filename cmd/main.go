@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/abdullohsattorov/todo-service/storage"
 	"net"
 
 	"github.com/abdullohsattorov/todo-service/config"
@@ -8,6 +9,7 @@ import (
 	"github.com/abdullohsattorov/todo-service/pkg/db"
 	"github.com/abdullohsattorov/todo-service/pkg/logger"
 	"github.com/abdullohsattorov/todo-service/service"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -33,7 +35,9 @@ func main() {
 		log.Fatal("sqlx connection to postgres error", logger.Error(err))
 	}
 
-	todoService := service.NewTodoService(connDB, log)
+	pgStorage := storage.NewStoragePg(connDB)
+
+	todoService := service.NewTodoService(pgStorage, log)
 
 	lis, err := net.Listen("tcp", cfg.RPCPort)
 	if err != nil {

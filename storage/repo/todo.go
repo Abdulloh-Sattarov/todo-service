@@ -13,5 +13,5 @@ type TodoStorageI interface {
 	List(page, limit int64) ([]*pb.Todo, int64, error)
 	Update(pb.Todo) (pb.Todo, error)
 	Delete(id int64) error
-	ListOverdue(time time.Time) ([]*pb.Todo, error)
+	ListOverdue(time time.Time, page, limit int64) ([]*pb.Todo, int64, error)
 }

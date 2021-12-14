@@ -8,7 +8,7 @@ service TodoService {
     rpc List(ListReq) returns (ListResp);
     rpc Update(Todo) returns (Todo);
     rpc Delete(ByIdReq) returns (EmptyResp);
-    rpc ListOverdue(Time) returns (Deadline);
+    rpc ListOverdue(Time) returns (ListResp);
 }
 
 message EmptyResp {}
@@ -36,10 +36,8 @@ message ListResp {
     int64 count = 2;
 }
 
-message Deadline {
-    repeated Todo todos = 1;
-}
-
 message Time {
     string time = 1;
+    int64 page = 2;
+    int64 limit = 3;
 }
