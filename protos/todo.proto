@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package todo;
+
+service TodoService {
+    rpc Create(Todo) returns (Todo);
+    rpc Get(ByIdReq) returns (Todo);
+    rpc List(ListReq) returns (ListResp);
+    rpc Update(Todo) returns (Todo);
+    rpc Delete(ByIdReq) returns (EmptyResp);
+    rpc ListOverdue(Time) returns (ListResp);
+}
+
+message EmptyResp {}
+
+message Todo {
+    int64 Id = 1;
+    string Assignee = 2;
+    string Title = 3;
+    string Summary = 4;
+    string Deadline = 5;
+    string Status = 6;
+}
+
+message ByIdReq {
+    int64 id = 1;
+}
+
+message ListReq {
+    int64 page = 1;
+    int64 limit = 2;
+}
+
+message ListResp {
+    repeated Todo todos = 1;
+    int64 count = 2;
+}
+
+message Time {
+    string time = 1;
+    int64 page = 2;
+    int64 limit = 3;
+}
