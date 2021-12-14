@@ -81,7 +81,7 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 		todos = append(todos, &todo)
 	}
 
-	err = r.db.QueryRow(`SELECT count(*) FROM todos`).Scan(&count)
+	err = r.db.QueryRow(`SELECT count(*) FROM todos where deadline >= $1`, req).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
