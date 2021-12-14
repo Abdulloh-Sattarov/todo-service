@@ -68,10 +68,10 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 
 	var (
 		todos []*pb.Todo
-		todo  pb.Todo
 		count int64
 	)
 	for rows.Next() {
+		var todo pb.Todo
 		err = rows.Scan(
 			&todo.Id,
 			&todo.Assignee,
@@ -108,10 +108,10 @@ func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 
 	var (
 		todos []*pb.Todo
-		todo  pb.Todo
 		count int64
 	)
 	for rows.Next() {
+		var todo pb.Todo
 		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status)
 		if err != nil {
 			return nil, 0, err
