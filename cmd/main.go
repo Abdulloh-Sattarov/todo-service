@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/abdullohsattorov/todo-service/storage"
 	"net"
 
 	"github.com/abdullohsattorov/todo-service/config"
@@ -9,6 +8,7 @@ import (
 	"github.com/abdullohsattorov/todo-service/pkg/db"
 	"github.com/abdullohsattorov/todo-service/pkg/logger"
 	"github.com/abdullohsattorov/todo-service/service"
+	"github.com/abdullohsattorov/todo-service/storage"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
