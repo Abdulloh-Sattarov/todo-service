@@ -104,6 +104,7 @@ func WithFields(l Logger, fields ...Field) Logger {
 // Cleanup ...
 func Cleanup(l Logger) error {
 	switch v := l.(type) {
+
 	case *LoggerImpl:
 		return v.zap.Sync()
 	default:

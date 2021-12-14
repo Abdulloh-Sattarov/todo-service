@@ -17,11 +17,9 @@ func ConnectToDB(cfg config.Config) (*sqlx.DB, error) {
 		cfg.PostgresPassword,
 		cfg.PostgresDatabase,
 	)
-
 	connDb, err := sqlx.Connect("postgres", psqlString)
 	if err != nil {
 		return nil, err
 	}
-
 	return connDb, nil
 }

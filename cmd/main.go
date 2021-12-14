@@ -3,13 +3,12 @@ package main
 import (
 	"net"
 
-	"google.golang.org/grpc"
-	
 	"github.com/abdullohsattorov/todo-service/config"
 	pb "github.com/abdullohsattorov/todo-service/genproto"
 	"github.com/abdullohsattorov/todo-service/pkg/db"
 	"github.com/abdullohsattorov/todo-service/pkg/logger"
 	"github.com/abdullohsattorov/todo-service/service"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 

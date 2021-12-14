@@ -57,7 +57,6 @@ func (r *todoRepo) ListOverdue(req time.Time) ([]*pb.Todo, error) {
 	rows, err := r.db.Queryx(
 		`SELECT id, assignee, title, summary, deadline, todo_status FROM todos where deadline > $1`, req,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -118,13 +117,9 @@ func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 }
 
 func (r *todoRepo) Update(todo pb.Todo) (pb.Todo, error) {
-
-	fmt.Println(todo)
-
 	result, err := r.db.Exec(`UPDATE todos SET assignee=$1, title=$2, summary=$3, deadline=$4, todo_status=$5 WHERE id=$6`,
 		todo.Assignee, todo.Title, todo.Summary, todo.Deadline, todo.Status, todo.Id,
 	)
-
 	if err != nil {
 		return pb.Todo{}, err
 	}
