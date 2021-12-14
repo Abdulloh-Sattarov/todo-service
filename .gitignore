@@ -5,6 +5,15 @@
 *.so
 *.dylib
 
+# ide configuration
+.idea
+
+# all vendored dependencies
+vendor
+
+# build binaries
+bin
+
 # Test binary, built with `go test -c`
 *.test
 
