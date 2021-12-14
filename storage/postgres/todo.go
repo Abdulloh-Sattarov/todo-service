@@ -55,18 +55,16 @@ func (r *todoRepo) Get(id int64) (pb.Todo, error) {
 
 func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, int64, error) {
 	offset := (page - 1) * limit
-	rows, err := r.db.Queryx(
-		`SELECT id, assignee, title, summary, deadline, todo_status FROM todos where deadline >= $1 LIMIT $2 OFFSET $3`, req, page, offset,
-	)
+	rows, err := r.db.Queryx(`
+				SELECT id, assignee, title, summary, deadline, todo_status 
+				FROM todos WHERE deadline >= $1 LIMIT $2 OFFSET $3`, req, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
-
 	if err = rows.Err(); err != nil {
 		return nil, 0, err
 	}
-
-	defer rows.Close() // nolint:err check
+	defer rows.Close()
 
 	var (
 		todos []*pb.Todo
@@ -74,14 +72,20 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 		count int64
 	)
 	for rows.Next() {
-		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status)
+		err = rows.Scan(
+			&todo.Id,
+			&todo.Assignee,
+			&todo.Title,
+			&todo.Summary,
+			&todo.Deadline,
+			&todo.Status)
 		if err != nil {
 			return nil, 0, err
 		}
 		todos = append(todos, &todo)
 	}
 
-	err = r.db.QueryRow(`SELECT count(*) FROM todos where deadline >= $1`, req).Scan(&count)
+	err = r.db.QueryRow(`SELECT count(*) FROM todos WHERE deadline >= $1`, req).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
