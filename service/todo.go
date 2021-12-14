@@ -1,8 +1,8 @@
 package service
 
 import (
-	"time"
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc/codes"
@@ -81,8 +81,8 @@ func (s *TodoService) Delete(ctx context.Context, req *pb.ByIdReq) (*pb.EmptyRes
 }
 
 func (s *TodoService) ListOverdue(ctx context.Context, req *pb.Time) (*pb.Deadline, error) {
-	layout := "2006-01-02T15:04:05.000Z"
-	t, err := time.Parse(layout , req.Time)
+	layout := "2006-01-02"
+	t, err := time.Parse(layout, req.Time)
 	if err != nil {
 		s.logger.Error("Faild to convert time!")
 		return nil, err
