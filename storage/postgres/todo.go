@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -28,11 +27,7 @@ func (r *todoRepo) Create(todo pb.Todo) (pb.Todo, error) {
 		return pb.Todo{}, err
 	}
 
-	fmt.Println(id)
-
 	todo, err = r.Get(id)
-
-	fmt.Println(todo)
 
 	if err != nil {
 		return pb.Todo{}, err
