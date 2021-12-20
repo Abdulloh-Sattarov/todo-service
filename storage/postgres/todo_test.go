@@ -11,12 +11,12 @@ import (
 func TestTodoRepo_Create(t *testing.T) {
 	tests := []struct {
 		name  string
-		input pb.Todo
+		input pb.TodoFunc
 		want  pb.Todo
 	}{
 		{
 			name: "successful",
-			input: pb.Todo{
+			input: pb.TodoFunc{
 				Assignee: "Test First Assignee",
 				Title:    "Some Title",
 				Summary:  "Summary",
@@ -39,7 +39,7 @@ func TestTodoRepo_Create(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = 0
+			got.Id = "0"
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -50,12 +50,12 @@ func TestTodoRepo_Create(t *testing.T) {
 func TestTodoRepo_Get(t *testing.T) {
 	tests := []struct {
 		name  string
-		input int64
+		input string
 		want  pb.Todo
 	}{
 		{
 			name:  "successful",
-			input: 1,
+			input: "1",
 			want: pb.Todo{
 				Assignee: "1 Assignee",
 				Title:    "Some Title",
@@ -72,7 +72,7 @@ func TestTodoRepo_Get(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = 0
+			got.Id = "0"
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -139,13 +139,13 @@ func TestTodoRepo_List(t *testing.T) {
 func TestTodoRepo_Update(t *testing.T) {
 	tests := []struct {
 		name  string
-		input pb.Todo
+		input pb.TodoFunc
 		want  pb.Todo
 	}{
 		{
 			name: "successful",
-			input: pb.Todo{
-				Id:       1,
+			input: pb.TodoFunc{
+				Id:       "1",
 				Assignee: "1 Assignee",
 				Title:    "Some Title",
 				Summary:  "Summary",
@@ -168,7 +168,7 @@ func TestTodoRepo_Update(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = 0
+			got.Id = "0"
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -176,28 +176,28 @@ func TestTodoRepo_Update(t *testing.T) {
 	}
 }
 
-//func TestTodoRepo_Delete(t *testing.T) {
-//	tests := []struct {
-//		name  string
-//		input int64
-//		want  error
-//	}{
-//		{
-//			name:  "successful",
-//			input: 25,
-//			want:  nil,
-//		},
-//	}
-//
-//	for _, tc := range tests {
-//		t.Run(tc.name, func(t *testing.T) {
-//			err := pgRepo.Delete(tc.input)
-//			if err != nil {
-//				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, err)
-//			}
-//		})
-//	}
-//}
+func TestTodoRepo_Delete(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  error
+	}{
+		{
+			name:  "successful",
+			input: "25",
+			want:  nil,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := pgRepo.Delete(tc.input)
+			if err != nil {
+				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, err)
+			}
+		})
+	}
+}
 
 func TestTodoRepo_ListOverdue(t *testing.T) {
 	layout := "2006-01-02"
@@ -225,7 +225,7 @@ func TestTodoRepo_ListOverdue(t *testing.T) {
 						Status:   "inactive",
 					},
 				},
-				count: 41,
+				count: 43,
 			},
 		},
 	}

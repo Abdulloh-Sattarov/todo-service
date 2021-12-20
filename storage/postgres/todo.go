@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -18,32 +19,37 @@ func NewTodoRepo(db *sqlx.DB) *todoRepo {
 	return &todoRepo{db: db}
 }
 
-func (r *todoRepo) Create(todo pb.Todo) (pb.Todo, error) {
-	var id int64
+func (r *todoRepo) Create(todo pb.TodoFunc) (pb.Todo, error) {
+	var id string
 	err := r.db.QueryRow(`
-        INSERT INTO todos(assignee, title, summary, deadline, todo_status)
-        VALUES ($1,$2, $3, $4, $5) returning id`, todo.Assignee, todo.Title, todo.Summary, todo.Deadline, todo.Status).Scan(&id)
+        INSERT INTO todos(id, assignee, title, summary, deadline, todo_status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning id`, todo.Id, todo.Assignee, todo.Title, todo.Summary, todo.Deadline, todo.Status, time.Now().UTC(), time.Now().UTC()).Scan(&id)
 	if err != nil {
 		return pb.Todo{}, err
 	}
 
-	todo, err = r.Get(id)
+	var NewTodo pb.Todo
+
+	NewTodo, err = r.Get(id)
 
 	if err != nil {
 		return pb.Todo{}, err
 	}
 
-	return todo, nil
+	return NewTodo, nil
 }
 
-func (r *todoRepo) Get(id int64) (pb.Todo, error) {
+func (r *todoRepo) Get(id string) (pb.Todo, error) {
 	var todo pb.Todo
+	var NullDeleted sql.NullTime
 	err := r.db.QueryRow(`
-        SELECT id, assignee, title, summary, deadline, todo_status FROM todos
-        WHERE id=$1`, id).Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status)
+        SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at FROM todos
+        WHERE id=$1 and deleted_at is null`, id).Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At, &NullDeleted)
 	if err != nil {
 		return pb.Todo{}, err
 	}
+
+	todo.Deleted_At = NullDeleted.Time.String()
 
 	return todo, nil
 }
@@ -51,8 +57,8 @@ func (r *todoRepo) Get(id int64) (pb.Todo, error) {
 func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(`
-				SELECT id, assignee, title, summary, deadline, todo_status 
-				FROM todos WHERE deadline >= $1 LIMIT $2 OFFSET $3`, req, limit, offset)
+				SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at
+				FROM todos WHERE deadline >= $1 and deleted_at is null order by id LIMIT $2 OFFSET $3`, req, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -67,20 +73,25 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 	)
 	for rows.Next() {
 		var todo pb.Todo
+		var NullDeleted sql.NullTime
 		err = rows.Scan(
 			&todo.Id,
 			&todo.Assignee,
 			&todo.Title,
 			&todo.Summary,
 			&todo.Deadline,
-			&todo.Status)
+			&todo.Status,
+			&todo.Created_At,
+			&todo.Updated_At,
+			&NullDeleted)
 		if err != nil {
 			return nil, 0, err
 		}
+		todo.Deleted_At = NullDeleted.Time.String()
 		todos = append(todos, &todo)
 	}
 
-	err = r.db.QueryRow(`SELECT count(*) FROM todos WHERE deadline >= $1`, req).Scan(&count)
+	err = r.db.QueryRow(`SELECT count(*) FROM todos WHERE deadline >= $1 and deleted_at is null`, req).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -91,7 +102,7 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(
-		`SELECT id, assignee, title, summary, deadline, todo_status FROM todos LIMIT $1 OFFSET $2`,
+		`SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at FROM todos WHERE deleted_at is null order by id LIMIT $1 OFFSET $2`,
 		limit, offset)
 	if err != nil {
 		return nil, 0, err
@@ -107,14 +118,16 @@ func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 	)
 	for rows.Next() {
 		var todo pb.Todo
-		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status)
+		var NullDeleted sql.NullTime
+		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At, &NullDeleted)
 		if err != nil {
 			return nil, 0, err
 		}
+		todo.Deleted_At = NullDeleted.Time.String()
 		todos = append(todos, &todo)
 	}
 
-	err = r.db.QueryRow(`SELECT count(*) FROM todos`).Scan(&count)
+	err = r.db.QueryRow(`SELECT count(*) FROM todos where deleted_at is null`).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -122,9 +135,9 @@ func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 	return todos, count, nil
 }
 
-func (r *todoRepo) Update(todo pb.Todo) (pb.Todo, error) {
-	result, err := r.db.Exec(`UPDATE todos SET assignee=$1, title=$2, summary=$3, deadline=$4, todo_status=$5 WHERE id=$6`,
-		todo.Assignee, todo.Title, todo.Summary, todo.Deadline, todo.Status, todo.Id,
+func (r *todoRepo) Update(todo pb.TodoFunc) (pb.Todo, error) {
+	result, err := r.db.Exec(`UPDATE todos SET assignee=$1, title=$2, summary=$3, deadline=$4, todo_status=$5, updated_at = $6 WHERE id=$7 and deleted_at is null`,
+		todo.Assignee, todo.Title, todo.Summary, todo.Deadline, todo.Status, time.Now().UTC(), todo.Id,
 	)
 	if err != nil {
 		return pb.Todo{}, err
@@ -134,17 +147,21 @@ func (r *todoRepo) Update(todo pb.Todo) (pb.Todo, error) {
 		return pb.Todo{}, sql.ErrNoRows
 	}
 
-	todo, err = r.Get(todo.Id)
+	var NewTodo pb.Todo
+
+	NewTodo, err = r.Get(todo.Id)
+
+	fmt.Println(result, NewTodo)
 
 	if err != nil {
 		return pb.Todo{}, err
 	}
 
-	return todo, nil
+	return NewTodo, nil
 }
 
-func (r *todoRepo) Delete(id int64) error {
-	result, err := r.db.Exec(`DELETE FROM todos WHERE id=$1`, id)
+func (r *todoRepo) Delete(id string) error {
+	result, err := r.db.Exec(`UPDATE todos SET deleted_at = $1 WHERE id=$2`, time.Now().UTC(), id)
 	if err != nil {
 		return err
 	}
