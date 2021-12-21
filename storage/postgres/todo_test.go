@@ -15,8 +15,9 @@ func TestTodoRepo_Create(t *testing.T) {
 		want  pb.Todo
 	}{
 		{
-			name: "successful",
+			name: "1 chi test",
 			input: pb.TodoFunc{
+				Id:       "0d512776-60ed-4980-b8a3-6904a2234fd9",
 				Assignee: "Test First Assignee",
 				Title:    "Some Title",
 				Summary:  "Summary",
@@ -39,7 +40,10 @@ func TestTodoRepo_Create(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = "0"
+			got.Id = ""
+			got.Created_At = ""
+			got.Updated_At = ""
+			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -55,13 +59,13 @@ func TestTodoRepo_Get(t *testing.T) {
 	}{
 		{
 			name:  "successful",
-			input: "1",
+			input: "0d512776-60ed-4980-b8a3-6904a2234fd7",
 			want: pb.Todo{
-				Assignee: "1 Assignee",
+				Assignee: "Test First Assignee",
 				Title:    "Some Title",
 				Summary:  "Summary",
-				Deadline: "2021-12-14T00:00:00Z",
-				Status:   "active",
+				Deadline: "2021-10-15T00:00:00Z",
+				Status:   "inactive",
 			},
 		},
 	}
@@ -72,7 +76,10 @@ func TestTodoRepo_Get(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = "0"
+			got.Id = ""
+			got.Created_At = ""
+			got.Updated_At = ""
+			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -101,19 +108,26 @@ func TestTodoRepo_List(t *testing.T) {
 			name: "successful",
 			input: TestInput{
 				page:  1,
-				limit: 1,
+				limit: 2,
 			},
 			want: TestWant{
 				todos: []pb.Todo{
 					{
-						Assignee: "Second Assigne",
+						Assignee: "Test First Assignee",
 						Title:    "Some Title",
 						Summary:  "Summary",
-						Deadline: "2021-12-15T00:00:00Z",
+						Deadline: "2021-10-15T00:00:00Z",
+						Status:   "inactive",
+					},
+					{
+						Assignee: "Test First Assignee",
+						Title:    "Some Title",
+						Summary:  "Summary",
+						Deadline: "2021-10-15T00:00:00Z",
 						Status:   "inactive",
 					},
 				},
-				count: 1,
+				count: 4,
 			},
 		},
 	}
@@ -131,6 +145,8 @@ func TestTodoRepo_List(t *testing.T) {
 						t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want.todos, got)
 					}
 				}
+			} else {
+				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want.todos, got)
 			}
 		})
 	}
@@ -145,19 +161,19 @@ func TestTodoRepo_Update(t *testing.T) {
 		{
 			name: "successful",
 			input: pb.TodoFunc{
-				Id:       "1",
-				Assignee: "1 Assignee",
-				Title:    "Some Title",
-				Summary:  "Summary",
+				Id:       "0d512776-60ed-4980-b8a3-6904a2234fd9",
+				Assignee: "Updated",
+				Title:    "Updated",
+				Summary:  "Updated",
 				Deadline: "2021-12-14",
-				Status:   "active",
+				Status:   "Updated",
 			},
 			want: pb.Todo{
-				Assignee: "1 Assignee",
-				Title:    "Some Title",
-				Summary:  "Summary",
+				Assignee: "Updated",
+				Title:    "Updated",
+				Summary:  "Updated",
 				Deadline: "2021-12-14T00:00:00Z",
-				Status:   "active",
+				Status:   "Updated",
 			},
 		},
 	}
@@ -168,7 +184,10 @@ func TestTodoRepo_Update(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
-			got.Id = "0"
+			got.Id = ""
+			got.Created_At = ""
+			got.Updated_At = ""
+			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -184,7 +203,7 @@ func TestTodoRepo_Delete(t *testing.T) {
 	}{
 		{
 			name:  "successful",
-			input: "25",
+			input: "0d512776-60ed-4980-b8a3-6904a2234fd8",
 			want:  nil,
 		},
 	}
@@ -213,19 +232,33 @@ func TestTodoRepo_ListOverdue(t *testing.T) {
 			input: TestInput{
 				time:  ParsedTime,
 				page:  1,
-				limit: 1,
+				limit: 5,
 			},
 			want: TestWant{
 				todos: []pb.Todo{
 					{
-						Assignee: "Second Assigne",
+						Assignee: "Test First Assignee",
 						Title:    "Some Title",
 						Summary:  "Summary",
-						Deadline: "2021-12-15T00:00:00Z",
+						Deadline: "2021-10-15T00:00:00Z",
 						Status:   "inactive",
 					},
+					{
+						Assignee: "Test First Assignee",
+						Title:    "Some Title",
+						Summary:  "Summary",
+						Deadline: "2021-10-15T00:00:00Z",
+						Status:   "inactive",
+					},
+					{
+						Assignee: "Updated",
+						Title:    "Updated",
+						Summary:  "Updated",
+						Deadline: "2021-12-14T00:00:00Z",
+						Status:   "Updated",
+					},
 				},
-				count: 43,
+				count: 3,
 			},
 		},
 	}
