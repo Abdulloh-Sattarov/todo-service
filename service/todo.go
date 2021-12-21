@@ -7,6 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/gofrs/uuid"
+
 	pb "github.com/abdullohsattorov/todo-service/genproto"
 	l "github.com/abdullohsattorov/todo-service/pkg/logger"
 	"github.com/abdullohsattorov/todo-service/storage"
@@ -26,7 +28,15 @@ func NewTodoService(storage storage.IStorage, log l.Logger) *TodoService {
 	}
 }
 
-func (s *TodoService) Create(ctx context.Context, req *pb.Todo) (*pb.Todo, error) {
+func (s *TodoService) Create(ctx context.Context, req *pb.TodoFunc) (*pb.Todo, error) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		s.logger.Error("failed while generating uuid", l.Error(err))
+		return nil, status.Error(codes.Internal, "failed generate uuid")
+	}
+
+	req.Id = id.String()
+
 	todo, err := s.storage.Todo().Create(*req)
 	if err != nil {
 		s.logger.Error("failed to create todo", l.Error(err))
@@ -59,7 +69,7 @@ func (s *TodoService) List(ctx context.Context, req *pb.ListReq) (*pb.ListResp, 
 	}, nil
 }
 
-func (s *TodoService) Update(ctx context.Context, req *pb.Todo) (*pb.Todo, error) {
+func (s *TodoService) Update(ctx context.Context, req *pb.TodoFunc) (*pb.Todo, error) {
 	todo, err := s.storage.Todo().Update(*req)
 	if err != nil {
 		s.logger.Error("failed to update todo", l.Error(err))
@@ -83,7 +93,7 @@ func (s *TodoService) ListOverdue(ctx context.Context, req *pb.Time) (*pb.ListRe
 	layout := "2006-01-02"
 	t, err := time.Parse(layout, req.Time)
 	if err != nil {
-		s.logger.Error("Faild to convert time!")
+		s.logger.Error("Failed to convert time!")
 		return nil, err
 	}
 	todos, count, err := s.storage.Todo().ListOverdue(t, req.Page, req.Limit)
