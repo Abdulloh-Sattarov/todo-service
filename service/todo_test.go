@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	pb "github.com/abdullohsattorov/todo-service/genproto"
 	"reflect"
 	"testing"
-	"time"
+
+	pb "github.com/abdullohsattorov/todo-service/genproto"
 )
 
 func TestTodoService_Create(t *testing.T) {
@@ -86,12 +86,6 @@ func TestTodoService_Get(t *testing.T) {
 			}
 		})
 	}
-}
-
-type TestInput struct {
-	time  time.Time
-	page  int64
-	limit int64
 }
 
 type TestWant struct {

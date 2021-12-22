@@ -9,7 +9,9 @@ require (
 )
 
 require (
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
+	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.19.1
 )
