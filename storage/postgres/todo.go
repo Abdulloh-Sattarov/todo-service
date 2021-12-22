@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -150,8 +149,6 @@ func (r *todoRepo) Update(todo pb.TodoFunc) (pb.Todo, error) {
 	var NewTodo pb.Todo
 
 	NewTodo, err = r.Get(todo.Id)
-
-	fmt.Println(result, NewTodo)
 
 	if err != nil {
 		return pb.Todo{}, err
