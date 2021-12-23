@@ -43,7 +43,6 @@ func TestTodoRepo_Create(t *testing.T) {
 			got.Id = ""
 			got.Created_At = ""
 			got.Updated_At = ""
-			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -79,7 +78,6 @@ func TestTodoRepo_Get(t *testing.T) {
 			got.Id = ""
 			got.Created_At = ""
 			got.Updated_At = ""
-			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}
@@ -187,7 +185,6 @@ func TestTodoRepo_Update(t *testing.T) {
 			got.Id = ""
 			got.Created_At = ""
 			got.Updated_At = ""
-			got.Deleted_At = ""
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", tc.name, tc.want, got)
 			}

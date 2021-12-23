@@ -40,15 +40,12 @@ func (r *todoRepo) Create(todo pb.TodoFunc) (pb.Todo, error) {
 
 func (r *todoRepo) Get(id string) (pb.Todo, error) {
 	var todo pb.Todo
-	var NullDeleted sql.NullTime
 	err := r.db.QueryRow(`
-        SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at FROM todos
-        WHERE id=$1 and deleted_at is null`, id).Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At, &NullDeleted)
+        SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at FROM todos
+        WHERE id=$1 and deleted_at is null`, id).Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At)
 	if err != nil {
 		return pb.Todo{}, err
 	}
-
-	todo.Deleted_At = NullDeleted.Time.String()
 
 	return todo, nil
 }
@@ -56,7 +53,7 @@ func (r *todoRepo) Get(id string) (pb.Todo, error) {
 func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(`
-				SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at
+				SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at
 				FROM todos WHERE deadline >= $1 and deleted_at is null order by id LIMIT $2 OFFSET $3`, req, limit, offset)
 	if err != nil {
 		return nil, 0, err
@@ -72,7 +69,6 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 	)
 	for rows.Next() {
 		var todo pb.Todo
-		var NullDeleted sql.NullTime
 		err = rows.Scan(
 			&todo.Id,
 			&todo.Assignee,
@@ -81,12 +77,10 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 			&todo.Deadline,
 			&todo.Status,
 			&todo.Created_At,
-			&todo.Updated_At,
-			&NullDeleted)
+			&todo.Updated_At)
 		if err != nil {
 			return nil, 0, err
 		}
-		todo.Deleted_At = NullDeleted.Time.String()
 		todos = append(todos, &todo)
 	}
 
@@ -101,7 +95,7 @@ func (r *todoRepo) ListOverdue(req time.Time, page, limit int64) ([]*pb.Todo, in
 func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(
-		`SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at, deleted_at FROM todos WHERE deleted_at is null order by id LIMIT $1 OFFSET $2`,
+		`SELECT id, assignee, title, summary, deadline, todo_status, created_at, updated_at FROM todos WHERE deleted_at is null order by id LIMIT $1 OFFSET $2`,
 		limit, offset)
 	if err != nil {
 		return nil, 0, err
@@ -117,12 +111,10 @@ func (r *todoRepo) List(page, limit int64) ([]*pb.Todo, int64, error) {
 	)
 	for rows.Next() {
 		var todo pb.Todo
-		var NullDeleted sql.NullTime
-		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At, &NullDeleted)
+		err = rows.Scan(&todo.Id, &todo.Assignee, &todo.Title, &todo.Summary, &todo.Deadline, &todo.Status, &todo.Created_At, &todo.Updated_At)
 		if err != nil {
 			return nil, 0, err
 		}
-		todo.Deleted_At = NullDeleted.Time.String()
 		todos = append(todos, &todo)
 	}
 
